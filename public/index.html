@@ -194,16 +194,14 @@ Tell me about project management software." required></textarea>
         function cleanUrlForMatching(url) {
             if (!url || typeof url !== 'string') return "";
             try {
-                // Convert to lowercase, remove http(s)://, www.
                 let cleaned = url.toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
-                // Remove trailing slash if it's the only thing left or at the end
                 if (cleaned.endsWith('/')) {
                     cleaned = cleaned.slice(0, -1);
                 }
                 return cleaned;
             } catch (e) {
                 console.error("Error cleaning URL:", url, e);
-                return url; // Return original if error
+                return url; 
             }
         }
 
@@ -211,8 +209,11 @@ Tell me about project management software." required></textarea>
         // --- Core Functions ---
         async function getOpenAIResponse(prompt) {
             console.log(`Sending prompt to backend: "${prompt}"`);
+            // ** Use the confirmed backend URL **
+            const backendApiUrl = 'https://chatgptranktracker.onrender.com/api/analyze-prompt'; 
+
             try {
-                const response = await fetch('https://chatgptranktracker.onrender.com', { 
+                const response = await fetch(backendApiUrl, { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({ prompt: prompt }),
@@ -220,7 +221,7 @@ Tell me about project management software." required></textarea>
                 if (!response.ok) {
                     let errorData;
                     try { errorData = await response.json(); } catch (e) { errorData = { error: response.statusText }; }
-                    console.error('Error from backend:', errorData);
+                    console.error('Error from backend:', errorData, 'Status:', response.status); 
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
@@ -245,7 +246,7 @@ Tell me about project management software." required></textarea>
             const brandNameInput = document.getElementById('brandName').value.trim();
             const brandVariationsInput = document.getElementById('brandVariations').value.trim();
             const brandDomainInput = document.getElementById('brandDomain').value.trim();
-            const gmbUrlInput = document.getElementById('gmbUrl').value.trim(); // Get GMB URL
+            const gmbUrlInput = document.getElementById('gmbUrl').value.trim(); 
             const promptsInput = document.getElementById('prompts').value.trim();
 
             if (!brandNameInput || !brandDomainInput || !promptsInput) {
@@ -256,8 +257,8 @@ Tell me about project management software." required></textarea>
 
             const brandNames = [brandNameInput.toLowerCase(), ...brandVariationsInput.split(',').map(v => v.trim().toLowerCase()).filter(v => v)];
             const uniqueBrandNames = [...new Set(brandNames)]; 
-            const cleanedBrandDomain = cleanUrlForMatching(brandDomainInput); // Clean main domain
-            const cleanedGmbUrl = gmbUrlInput ? cleanUrlForMatching(gmbUrlInput) : ""; // Clean GMB URL if provided
+            const cleanedBrandDomain = cleanUrlForMatching(brandDomainInput); 
+            const cleanedGmbUrl = gmbUrlInput ? cleanUrlForMatching(gmbUrlInput) : ""; 
 
             const prompts = promptsInput.split('\n').map(p => p.trim()).filter(p => p);
             if (prompts.length === 0 || prompts.length > 20) {
@@ -274,11 +275,11 @@ Tell me about project management software." required></textarea>
                     analysisResult = {
                         brandMentionPosition: "Error", linkPosition: "Error",
                         numBrandMentions: "Error", numDomainMentions: "Error",
-                        numGmbMentions: "Error", gmbLinkPosition: "Error", // GMB Error
+                        numGmbMentions: "Error", gmbLinkPosition: "Error", 
                         otherBrands: "Error", otherDomains: "Error",
                     };
                 } else {
-                    analysisResult = analyzeResponse(fullResponse, uniqueBrandNames, cleanedBrandDomain, cleanedGmbUrl); // Pass cleaned GMB URL
+                    analysisResult = analyzeResponse(fullResponse, uniqueBrandNames, cleanedBrandDomain, cleanedGmbUrl); 
                 }
                 tableData.push({ prompt: prompt, ...analysisResult, fullResponse: fullResponse });
                 addResultToTable(prompt, analysisResult, fullResponse);
@@ -297,13 +298,13 @@ Tell me about project management software." required></textarea>
             return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        function analyzeResponse(responseText, brandNames, brandDomainCleaned, gmbUrlCleaned) { // Added gmbUrlCleaned
+        function analyzeResponse(responseText, brandNames, brandDomainCleaned, gmbUrlCleaned) { 
             if (typeof responseText !== 'string') { 
                 console.error("analyzeResponse received non-string input:", responseText);
                 return {
                     brandMentionPosition: "Invalid Response", linkPosition: "Invalid Response",
                     numBrandMentions: 0, numDomainMentions: 0,
-                    numGmbMentions: 0, gmbLinkPosition: "NA", // GMB Default
+                    numGmbMentions: 0, gmbLinkPosition: "NA", 
                     otherBrands: "NA", otherDomains: "NA",
                 };
             }
@@ -372,7 +373,7 @@ Tell me about project management software." required></textarea>
             }
 
             const urlRegex = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s()<>]*[^\s`!()\[\]{};:'".,<>?«»“”‘’])?)/gi;
-            const allUrlMentions = []; // Stores { fullUrl: string, domain: string, index: number, cleanedFullUrl: string }
+            const allUrlMentions = []; 
             let urlMatch;
             while ((urlMatch = urlRegex.exec(responseText)) !== null) {
                 if (urlMatch[1] && urlMatch[1].includes('.')) { 
@@ -380,13 +381,12 @@ Tell me about project management software." required></textarea>
                         fullUrl: urlMatch[0], 
                         domain: urlMatch[1].toLowerCase(), 
                         index: urlMatch.index,
-                        cleanedFullUrl: cleanUrlForMatching(urlMatch[0]) // Store cleaned version for matching
+                        cleanedFullUrl: cleanUrlForMatching(urlMatch[0]) 
                     });
                 }
             }
             allUrlMentions.sort((a,b) => a.index - b.index);
 
-            // Brand Domain/URL analysis
             const brandDomainMentions = allUrlMentions.filter(m => m.cleanedFullUrl.includes(brandDomainCleaned));
             const brandDomainMentionsCount = brandDomainMentions.length;
             
@@ -396,13 +396,12 @@ Tell me about project management software." required></textarea>
             );
             const uniqueOtherDomains = [...new Set(otherDomainMentionsList.map(item => item.domain))];
 
-
             let linkRank = "NA";
             if (brandDomainMentionsCount > 0 && brandDomainMentions.length > 0) {
                 const firstBrandDomainMentionIndex = brandDomainMentions[0].index;
                 let rank = 1;
                 const precedingOtherDomains = new Set();
-                for (const otherDomain of otherDomainMentionsList) { // Use the correctly filtered list
+                for (const otherDomain of otherDomainMentionsList) { 
                     if (otherDomain.index < firstBrandDomainMentionIndex) {
                         precedingOtherDomains.add(otherDomain.domain);
                     }
@@ -410,12 +409,11 @@ Tell me about project management software." required></textarea>
                 linkRank = precedingOtherDomains.size + 1;
             }
 
-            // GMB/Maps URL Analysis
             let numGmbMentions = 0;
             let gmbLinkPosition = "NA";
-            const gmbUrlMentionsObjects = []; // Renamed to avoid conflict with a potential outer scope variable
+            const gmbUrlMentionsObjects = []; 
 
-            if (gmbUrlCleaned) { // Only proceed if gmbUrlCleaned is not an empty string
+            if (gmbUrlCleaned) { 
                 allUrlMentions.forEach(m => {
                     if (m.cleanedFullUrl.includes(gmbUrlCleaned) || gmbUrlCleaned.includes(m.cleanedFullUrl)) {
                         numGmbMentions++;
@@ -424,12 +422,10 @@ Tell me about project management software." required></textarea>
                 });
                 
                 if (numGmbMentions > 0) {
-                    // gmbUrlMentionsObjects are already sorted by index because allUrlMentions was.
                     const firstGmbMentionIndex = gmbUrlMentionsObjects[0].index;
                     let rank = 1;
                     const precedingOtherUrlsForGmb = new Set();
                     for (const urlItem of allUrlMentions) {
-                        // Check if the URL is not the GMB URL itself and appears before the first GMB mention
                         const isGmbMatch = urlItem.cleanedFullUrl.includes(gmbUrlCleaned) || gmbUrlCleaned.includes(urlItem.cleanedFullUrl);
                         if (urlItem.index < firstGmbMentionIndex && !isGmbMatch) {
                              precedingOtherUrlsForGmb.add(urlItem.cleanedFullUrl); 
@@ -438,7 +434,6 @@ Tell me about project management software." required></textarea>
                     gmbLinkPosition = precedingOtherUrlsForGmb.size + 1;
                 }
             }
-
 
             return {
                 brandMentionPosition: brandMentionRank,
