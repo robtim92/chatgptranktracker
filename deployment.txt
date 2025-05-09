@@ -1,0 +1,3 @@
+Front end: https://chatgptranktracker-frm3.onrender.com
+
+Back end: https://chatgptranktracker.onrender.com
