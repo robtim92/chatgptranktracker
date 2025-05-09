@@ -212,7 +212,7 @@ Tell me about project management software." required></textarea>
         async function getOpenAIResponse(prompt) {
             console.log(`Sending prompt to backend: "${prompt}"`);
             try {
-                const response = await fetch('http://localhost:3000/api/analyze-prompt', { 
+                const response = await fetch('https://chatgptranktracker.onrender.com', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({ prompt: prompt }),
