@@ -15,259 +15,48 @@
             margin: 0;
             padding: 0;
         }
-
-        .app-header {
-            background-color: #0E1B50; /* Dark Blue */
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .app-header .logo {
-            max-width: 200px; /* Adjusted for better visibility */
-            margin-bottom: 10px;
-        }
-
-        .app-header h1 {
-            color: white;
-            font-size: 1.75rem; /* 28px */
-            font-weight: 700;
-            margin: 0;
-        }
-        
-        .app-header p {
-            color: #e0e0e0; /* Lighter text for subtitle */
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px; /* Adjusted padding */
-        }
-
-        .content-card {
-            background-color: #f9f9f9; /* Light gray, similar to form-container */
-            border-radius: 8px;
-            padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 24px;
-        }
-
-        .content-card h2 {
-            font-size: 1.5rem; /* 24px */
-            color: #009afb; /* Bright Blue */
-            margin-bottom: 15px;
-            border-bottom: 2px solid #009afb;
-            padding-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.875rem; /* 14px */
-            font-weight: 500;
-            color: #0E1B50; /* Dark Blue */
-            margin-bottom: 4px;
-        }
-
-        .form-input, .form-textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem; /* 16px */
-            color: #0E1B50;
-            background-color: #fff;
-        }
-        .form-input:focus, .form-textarea:focus {
-            border-color: #009afb; /* Bright Blue on focus */
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0, 154, 251, 0.2);
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border-radius: 4px;
-            font-weight: 500;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s, border-color 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: none;
-        }
-
-        .btn-primary {
-            background-color: #009afb; /* Bright Blue */
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #007bbf; /* Darker Bright Blue */
-        }
-
-        .btn-secondary {
-            background-color: #0E1B50; /* Dark Blue */
-            color: white;
-        }
-        .btn-secondary:hover {
-            background-color: #1c2f70; /* Slightly lighter Dark Blue */
-        }
-        
-        .table-container {
-            overflow-x: auto;
-            background: #ffffff; /* White background for table area */
-            padding: 15px; /* Padding around the table */
-            border-radius: 8px;
-            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0; /* Removed top margin as padding is on container */
-        }
-        th, td {
-            padding: 12px 15px; /* Adjusted padding */
-            border: 1px solid #ddd;
-            text-align: left;
-            font-size: 0.875rem; /* 14px */
-            color: #0E1B50; /* Dark Blue text for table content */
-        }
-        th {
-            background-color: #009afb; /* Bright Blue */
-            color: white;
-            font-weight: 700;
-        }
-        td {
-            background-color: #f1f9ff; /* Very light blue */
-        }
-        tr:nth-child(even) td {
-            background-color: #e6f3ff; /* Slightly different for even rows */
-        }
-
-        /* Custom Animated Loader */
-        .custom-loader {
-            width: 60px;
-            height: 60px;
-            margin: 30px auto;
-            position: relative;
-        }
-        .custom-loader svg {
-            width: 100%;
-            height: 100%;
-            animation: rotate 2s linear infinite;
-        }
-        .custom-loader .path {
-            stroke-dasharray: 1, 200;
-            stroke-dashoffset: 0;
-            stroke: #009afb; /* Bright Blue */
-            animation: dash 1.5s ease-in-out infinite;
-            stroke-linecap: round;
-        }
-        .custom-loader .path-bg {
-             stroke: #0E1B50; /* Dark Blue for background track */
-             opacity: 0.2;
-        }
-
-        @keyframes rotate {
-            100% { transform: rotate(360deg); }
-        }
-        @keyframes dash {
-            0% {
-                stroke-dasharray: 1, 200;
-                stroke-dashoffset: 0;
-            }
-            50% {
-                stroke-dasharray: 89, 200;
-                stroke-dashoffset: -35px;
-            }
-            100% {
-                stroke-dasharray: 89, 200;
-                stroke-dashoffset: -124px;
-            }
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(14, 27, 80, 0.6); /* Dark blue overlay */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 700px; /* Increased max-width for better readability */
-            max-height: 85vh; 
-            overflow-y: auto; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            color: #0E1B50; /* Dark Blue text */
-        }
-        .modal-content h3 {
-            color: #009afb; /* Bright Blue for modal title */
-            font-size: 1.25rem;
-            margin-bottom: 15px;
-        }
-        .modal-content #modalResponseBody {
-            font-size: 0.95rem; /* Slightly larger for readability */
-            line-height: 1.6;
-        }
-        .modal-close-btn {
-            background-color: #0E1B50;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .modal-close-btn:hover {
-            background-color: #1c2f70;
-        }
-
-        .security-note {
-            background-color: #fffbeb; /* bg-yellow-50 from Tailwind, adjusted */
-            border: 1px solid #fde68a; /* border-yellow-300 from Tailwind, adjusted */
-            color: #92400e; /* text-yellow-800 from Tailwind */
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-        }
-        .security-note strong {
-            color: #78350f; /* text-yellow-900 */
-        }
-        /* Responsive adjustments */
+        .app-header { background-color: #0E1B50; color: white; padding: 20px; text-align: center; }
+        .app-header .logo { max-width: 200px; margin-bottom: 10px; }
+        .app-header h1 { color: white; font-size: 1.75rem; font-weight: 700; margin: 0; }
+        .app-header p { color: #e0e0e0; font-size: 0.9rem; margin-top: 4px; }
+        .main-container { max-width: 1200px; margin: 0 auto; padding: 30px 20px; }
+        .content-card { background-color: #f9f9f9; border-radius: 8px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-bottom: 24px; }
+        .content-card h2 { font-size: 1.5rem; color: #009afb; margin-bottom: 15px; border-bottom: 2px solid #009afb; padding-bottom: 8px; font-weight: 700; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 500; color: #0E1B50; margin-bottom: 4px; }
+        .form-input, .form-textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; color: #0E1B50; background-color: #fff; }
+        .form-input:focus, .form-textarea:focus { border-color: #009afb; outline: none; box-shadow: 0 0 0 2px rgba(0, 154, 251, 0.2); }
+        .btn { padding: 12px 24px; border-radius: 4px; font-weight: 500; font-size: 1rem; cursor: pointer; transition: background-color 0.3s, border-color 0.3s; display: inline-flex; align-items: center; justify-content: center; border: none; }
+        .btn-primary { background-color: #009afb; color: white; }
+        .btn-primary:hover { background-color: #007bbf; }
+        .btn-secondary { background-color: #0E1B50; color: white; }
+        .btn-secondary:hover { background-color: #1c2f70; }
+        .table-container { overflow-x: auto; background: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 0; }
+        th, td { padding: 12px 15px; border: 1px solid #ddd; text-align: left; font-size: 0.875rem; color: #0E1B50; }
+        th { background-color: #009afb; color: white; font-weight: 700; }
+        td { background-color: #f1f9ff; }
+        tr:nth-child(even) td { background-color: #e6f3ff; }
+        .custom-loader { width: 60px; height: 60px; margin: 30px auto; position: relative; }
+        .custom-loader svg { width: 100%; height: 100%; animation: rotate 2s linear infinite; }
+        .custom-loader .path { stroke-dasharray: 1, 200; stroke-dashoffset: 0; stroke: #009afb; animation: dash 1.5s ease-in-out infinite; stroke-linecap: round; }
+        .custom-loader .path-bg { stroke: #0E1B50; opacity: 0.2; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        @keyframes dash { 0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; } 50% { stroke-dasharray: 89, 200; stroke-dashoffset: -35px; } 100% { stroke-dasharray: 89, 200; stroke-dashoffset: -124px; } }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(14, 27, 80, 0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 8px; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); color: #0E1B50; }
+        .modal-content h3 { color: #009afb; font-size: 1.25rem; margin-bottom: 15px; }
+        .modal-content #modalResponseBody { font-size: 0.95rem; line-height: 1.6; }
+        .modal-close-btn { background-color: #0E1B50; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+        .modal-close-btn:hover { background-color: #1c2f70; }
+        .security-note { background-color: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .security-note strong { color: #78350f; }
         @media (max-width: 768px) {
-            .app-header h1 {
-                font-size: 1.5rem;
-            }
-            .main-container {
-                padding: 20px 15px;
-            }
-            .content-card {
-                padding: 20px;
-            }
-            .content-card h2 {
-                font-size: 1.25rem;
-            }
-            .btn {
-                padding: 10px 18px;
-                font-size: 0.9rem;
-            }
-            th, td {
-                padding: 10px;
-                font-size: 0.8rem;
-            }
+            .app-header h1 { font-size: 1.5rem; }
+            .main-container { padding: 20px 15px; }
+            .content-card { padding: 20px; }
+            .content-card h2 { font-size: 1.25rem; }
+            .btn { padding: 10px 18px; font-size: 0.9rem; }
+            th, td { padding: 10px; font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -280,8 +69,8 @@
 
     <div class="main-container">
         <div class="security-note" role="alert">
-            <strong class="font-bold">API Integration Note:</strong> This version is now set up to communicate with a backend server for OpenAI API calls.
-            Ensure your Node.js server (`server.js`) is running. The mock API is no longer used.
+            <strong class="font-bold">API Integration Note:</strong> This version is set up to communicate with a backend server for OpenAI API calls.
+            Ensure your Node.js server (`server.js`) is running.
         </div>
 
         <div class="content-card">
@@ -297,13 +86,21 @@
                         <input type="text" id="brandVariations" name="brandVariations" class="form-input" placeholder="e.g., Acme, Acme Inc.">
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label for="brandDomain" class="form-label">Brand Domain/URL:</label>
-                    <input type="text" id="brandDomain" name="brandDomain" class="form-input" placeholder="e.g., acme.com" required>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                    <div>
+                        <label for="brandDomain" class="form-label">Brand Domain/URL:</label>
+                        <input type="text" id="brandDomain" name="brandDomain" class="form-input" placeholder="e.g., acme.com" required>
+                    </div>
+                    <div>
+                        <label for="gmbUrl" class="form-label">Client's Google Maps URL (Optional):</label>
+                        <input type="text" id="gmbUrl" name="gmbUrl" class="form-input" placeholder="e.g., https://maps.app.goo.gl/XYZ123">
+                    </div>
                 </div>
                 <div class="mb-6">
                     <label for="prompts" class="form-label">Prompts (one per line, max 20):</label>
-                    <textarea id="prompts" name="prompts" rows="5" class="form-textarea" placeholder="Enter up to 20 prompts, each on a new line.&#10;e.g., What are the best CRM solutions?&#10;Tell me about project management software." required></textarea>
+                    <textarea id="prompts" name="prompts" rows="5" class="form-textarea" placeholder="Enter up to 20 prompts, each on a new line.
+e.g., What are the best CRM solutions?
+Tell me about project management software." required></textarea>
                     <p class="text-xs text-gray-500 mt-1">Each line will be treated as a separate prompt.</p>
                 </div>
                 <div class="text-right">
@@ -346,6 +143,8 @@
                             <th>Link Position</th>
                             <th># Brand Mentions</th>
                             <th># Domain/URL Mentions</th>
+                            <th># GMB/Maps Mentions</th>
+                            <th>GMB/Maps Link Position</th>
                             <th>Other Brands Mentioned</th>
                             <th>Other Domains Mentioned</th>
                             <th>Full Response</th>
@@ -379,80 +178,74 @@
         const modalResponseBody = document.getElementById('modalResponseBody');
         const closeModalBtn = document.getElementById('closeModalBtn');
 
-        let tableData = []; // To store data for CSV export
+        let tableData = []; 
 
         // --- Event Listeners ---
         analysisForm.addEventListener('submit', handleFormSubmit);
         downloadCsvBtn.addEventListener('click', downloadTableAsCSV);
         closeModalBtn.addEventListener('click', () => responseModal.classList.add('hidden'));
-        // Close modal if user clicks outside the modal content
         responseModal.addEventListener('click', (event) => {
             if (event.target === responseModal) {
                 responseModal.classList.add('hidden');
             }
         });
 
+        // --- Helper Function to Clean URLs for Comparison ---
+        function cleanUrlForMatching(url) {
+            if (!url || typeof url !== 'string') return "";
+            try {
+                // Convert to lowercase, remove http(s)://, www.
+                let cleaned = url.toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
+                // Remove trailing slash if it's the only thing left or at the end
+                if (cleaned.endsWith('/')) {
+                    cleaned = cleaned.slice(0, -1);
+                }
+                return cleaned;
+            } catch (e) {
+                console.error("Error cleaning URL:", url, e);
+                return url; // Return original if error
+            }
+        }
+
 
         // --- Core Functions ---
-
-        /**
-         * Calls the backend API to get a response from OpenAI.
-         * @param {string} prompt - The user's prompt.
-         * @returns {Promise<string>} A promise that resolves with the API response text.
-         */
         async function getOpenAIResponse(prompt) {
             console.log(`Sending prompt to backend: "${prompt}"`);
             try {
-                const response = await fetch('http://localhost:3000/api/analyze-prompt', { // URL of your backend
+                const response = await fetch('http://localhost:3000/api/analyze-prompt', { 
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json', },
                     body: JSON.stringify({ prompt: prompt }),
                 });
-
                 if (!response.ok) {
                     let errorData;
-                    try {
-                        errorData = await response.json(); // Try to parse JSON error from backend
-                    } catch (e) {
-                        // If backend error is not JSON, use status text
-                        errorData = { error: response.statusText };
-                    }
+                    try { errorData = await response.json(); } catch (e) { errorData = { error: response.statusText }; }
                     console.error('Error from backend:', errorData);
-                    // Display a user-friendly error, or throw to be caught by handleFormSubmit
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
-
                 const data = await response.json();
                 if (typeof data.response !== 'string') {
                     console.error('Unexpected response structure from backend:', data);
                     throw new Error('Received invalid response format from server.');
                 }
-                return data.response; // This is the text from the OpenAI API
-
+                return data.response;
             } catch (error) {
                 console.error('Failed to fetch OpenAI response from backend:', error);
-                // Return a specific error message that can be displayed in the table
-                // This allows the UI to show that this specific prompt failed but others might succeed.
                 return `Error: Could not get response for prompt. Details: ${error.message}`;
             }
         }
 
-        /**
-         * Handles the form submission, orchestrates analysis, and displays results.
-         * @param {Event} event - The form submission event.
-         */
         async function handleFormSubmit(event) {
             event.preventDefault();
             resultsSection.classList.add('hidden');
             loadingIndicator.classList.remove('hidden');
-            resultsTableBody.innerHTML = ''; // Clear previous results
+            resultsTableBody.innerHTML = ''; 
             tableData = [];
 
             const brandNameInput = document.getElementById('brandName').value.trim();
             const brandVariationsInput = document.getElementById('brandVariations').value.trim();
             const brandDomainInput = document.getElementById('brandDomain').value.trim();
+            const gmbUrlInput = document.getElementById('gmbUrl').value.trim(); // Get GMB URL
             const promptsInput = document.getElementById('prompts').value.trim();
 
             if (!brandNameInput || !brandDomainInput || !promptsInput) {
@@ -463,6 +256,8 @@
 
             const brandNames = [brandNameInput.toLowerCase(), ...brandVariationsInput.split(',').map(v => v.trim().toLowerCase()).filter(v => v)];
             const uniqueBrandNames = [...new Set(brandNames)]; 
+            const cleanedBrandDomain = cleanUrlForMatching(brandDomainInput); // Clean main domain
+            const cleanedGmbUrl = gmbUrlInput ? cleanUrlForMatching(gmbUrlInput) : ""; // Clean GMB URL if provided
 
             const prompts = promptsInput.split('\n').map(p => p.trim()).filter(p => p);
             if (prompts.length === 0 || prompts.length > 20) {
@@ -473,30 +268,19 @@
 
             for (const prompt of prompts) {
                 if (!prompt) continue;
-
-                // MODIFIED LINE: Call the new function to get response from backend
                 const fullResponse = await getOpenAIResponse(prompt); 
-                
                 let analysisResult;
-                // Check if the response starts with "Error:" to handle API call failures per prompt
                 if (fullResponse.startsWith("Error:")) {
                     analysisResult = {
-                        brandMentionPosition: "Error",
-                        linkPosition: "Error",
-                        numBrandMentions: "Error",
-                        numDomainMentions: "Error",
-                        otherBrands: "Error",
-                        otherDomains: "Error",
+                        brandMentionPosition: "Error", linkPosition: "Error",
+                        numBrandMentions: "Error", numDomainMentions: "Error",
+                        numGmbMentions: "Error", gmbLinkPosition: "Error", // GMB Error
+                        otherBrands: "Error", otherDomains: "Error",
                     };
                 } else {
-                    analysisResult = analyzeResponse(fullResponse, uniqueBrandNames, brandDomainInput.toLowerCase());
+                    analysisResult = analyzeResponse(fullResponse, uniqueBrandNames, cleanedBrandDomain, cleanedGmbUrl); // Pass cleaned GMB URL
                 }
-                
-                tableData.push({
-                    prompt: prompt,
-                    ...analysisResult,
-                    fullResponse: fullResponse 
-                });
+                tableData.push({ prompt: prompt, ...analysisResult, fullResponse: fullResponse });
                 addResultToTable(prompt, analysisResult, fullResponse);
             }
 
@@ -504,46 +288,32 @@
             if (tableData.length > 0) {
                 resultsSection.classList.remove('hidden');
             } else {
-                // This condition might be met if all API calls fail and no data is processed.
-                // Consider a more specific message if all prompts resulted in errors.
                 alert("No prompts were successfully processed. Please check your input or server connection.");
             }
         }
 
-        /**
-         * Escapes special characters in a string for use in a regular expression.
-         * @param {string} str - The input string.
-         * @returns {string} The escaped string.
-         */
         function escapeRegExp(str) {
-            if (typeof str !== 'string') return ''; // Handle non-string inputs gracefully
+            if (typeof str !== 'string') return ''; 
             return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         }
 
-        /**
-         * Analyzes the API response for brand mentions, links, and other details.
-         * @param {string} responseText - The text response from the API.
-         * @param {string[]} brandNames - Array of brand names and variations (lowercase).
-         * @param {string} brandDomain - The brand's domain/URL (lowercase).
-         * @returns {object} An object containing the analysis results.
-         */
-        function analyzeResponse(responseText, brandNames, brandDomain) {
-            if (typeof responseText !== 'string') { // Safety check
+        function analyzeResponse(responseText, brandNames, brandDomainCleaned, gmbUrlCleaned) { // Added gmbUrlCleaned
+            if (typeof responseText !== 'string') { 
                 console.error("analyzeResponse received non-string input:", responseText);
                 return {
                     brandMentionPosition: "Invalid Response", linkPosition: "Invalid Response",
                     numBrandMentions: 0, numDomainMentions: 0,
+                    numGmbMentions: 0, gmbLinkPosition: "NA", // GMB Default
                     otherBrands: "NA", otherDomains: "NA",
                 };
             }
 
             let brandMentionsCount = 0;
             const brandMentionPositions = [];
-
             brandNames.forEach(bName => {
                 if (!bName) return;
                 const escapedBName = escapeRegExp(bName);
-                if (!escapedBName) return; // Skip if brand name becomes empty after escape
+                if (!escapedBName) return; 
                 try {
                     const regex = new RegExp(`\\b${escapedBName}\\b`, 'gi');
                     let match;
@@ -551,9 +321,7 @@
                         brandMentionsCount++;
                         brandMentionPositions.push({ name: match[0], index: match.index });
                     }
-                } catch (e) {
-                    console.error(`Error creating regex for brand name "${bName}":`, e);
-                }
+                } catch (e) { console.error(`Error creating regex for brand name "${bName}":`, e); }
             });
             brandMentionPositions.sort((a, b) => a.index - b.index);
 
@@ -566,7 +334,6 @@
                      allBrandLikeMentions.push({ name: potentialBrand, index: match.index });
                 }
             }
-            
             const commonOtherBrands = ["Salesforce", "HubSpot", "Zoho CRM", "Asana", "Trello", "Monday.com", "Google Drive", "Dropbox", "OneDrive", "XTool", "YPlatform", "CompetitorA", "CompetitorB", "PipeDrive", "Jira", "Box.com", "ZService", "ProductC"];
             commonOtherBrands.forEach(ob => {
                 const escapedOb = escapeRegExp(ob);
@@ -581,11 +348,8 @@
                             allBrandLikeMentions.push({ name: foundBrandName, index: obMatch.index });
                         }
                     }
-                } catch (e) {
-                    console.error(`Error creating regex for common brand "${ob}":`, e);
-                }
+                } catch (e) { console.error(`Error creating regex for common brand "${ob}":`, e); }
             });
-
             allBrandLikeMentions.sort((a, b) => a.index - b.index);
             const uniqueOtherBrandMentions = [];
             const seenOtherBrands = new Set();
@@ -602,36 +366,43 @@
                 const firstBrandMentionIndex = brandMentionPositions[0].index;
                 let rank = 1;
                 for (const otherBrand of uniqueOtherBrandMentions) {
-                    if (otherBrand.index < firstBrandMentionIndex) {
-                        rank++;
-                    }
+                    if (otherBrand.index < firstBrandMentionIndex) { rank++; }
                 }
                 brandMentionRank = rank;
             }
 
             const urlRegex = /(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s()<>]*[^\s`!()\[\]{};:'".,<>?«»“”‘’])?)/gi;
-            const allUrlMentions = [];
+            const allUrlMentions = []; // Stores { fullUrl: string, domain: string, index: number, cleanedFullUrl: string }
             let urlMatch;
             while ((urlMatch = urlRegex.exec(responseText)) !== null) {
-                if (urlMatch[1] && urlMatch[1].includes('.')) { // Check urlMatch[1] exists
-                    allUrlMentions.push({ fullUrl: urlMatch[0], domain: urlMatch[1].toLowerCase(), index: urlMatch.index });
+                if (urlMatch[1] && urlMatch[1].includes('.')) { 
+                    allUrlMentions.push({ 
+                        fullUrl: urlMatch[0], 
+                        domain: urlMatch[1].toLowerCase(), 
+                        index: urlMatch.index,
+                        cleanedFullUrl: cleanUrlForMatching(urlMatch[0]) // Store cleaned version for matching
+                    });
                 }
             }
             allUrlMentions.sort((a,b) => a.index - b.index);
 
-            const brandDomainClean = brandDomain.toLowerCase().replace(/^https?:\/\/(www\.)?/, '');
-            const brandDomainMentions = allUrlMentions.filter(m => m.domain.includes(brandDomainClean));
+            // Brand Domain/URL analysis
+            const brandDomainMentions = allUrlMentions.filter(m => m.cleanedFullUrl.includes(brandDomainCleaned));
             const brandDomainMentionsCount = brandDomainMentions.length;
+            
+            const otherDomainMentionsList = allUrlMentions.filter(m => 
+                !m.cleanedFullUrl.includes(brandDomainCleaned) && 
+                (!gmbUrlCleaned || (!m.cleanedFullUrl.includes(gmbUrlCleaned) && !gmbUrlCleaned.includes(m.cleanedFullUrl)))
+            );
+            const uniqueOtherDomains = [...new Set(otherDomainMentionsList.map(item => item.domain))];
 
-            const otherDomainMentions = allUrlMentions.filter(m => !m.domain.includes(brandDomainClean));
-            const uniqueOtherDomains = [...new Set(otherDomainMentions.map(item => item.domain))];
 
             let linkRank = "NA";
             if (brandDomainMentionsCount > 0 && brandDomainMentions.length > 0) {
                 const firstBrandDomainMentionIndex = brandDomainMentions[0].index;
                 let rank = 1;
                 const precedingOtherDomains = new Set();
-                for (const otherDomain of otherDomainMentions) {
+                for (const otherDomain of otherDomainMentionsList) { // Use the correctly filtered list
                     if (otherDomain.index < firstBrandDomainMentionIndex) {
                         precedingOtherDomains.add(otherDomain.domain);
                     }
@@ -639,41 +410,69 @@
                 linkRank = precedingOtherDomains.size + 1;
             }
 
+            // GMB/Maps URL Analysis
+            let numGmbMentions = 0;
+            let gmbLinkPosition = "NA";
+            const gmbUrlMentionsObjects = []; // Renamed to avoid conflict with a potential outer scope variable
+
+            if (gmbUrlCleaned) { // Only proceed if gmbUrlCleaned is not an empty string
+                allUrlMentions.forEach(m => {
+                    if (m.cleanedFullUrl.includes(gmbUrlCleaned) || gmbUrlCleaned.includes(m.cleanedFullUrl)) {
+                        numGmbMentions++;
+                        gmbUrlMentionsObjects.push(m); 
+                    }
+                });
+                
+                if (numGmbMentions > 0) {
+                    // gmbUrlMentionsObjects are already sorted by index because allUrlMentions was.
+                    const firstGmbMentionIndex = gmbUrlMentionsObjects[0].index;
+                    let rank = 1;
+                    const precedingOtherUrlsForGmb = new Set();
+                    for (const urlItem of allUrlMentions) {
+                        // Check if the URL is not the GMB URL itself and appears before the first GMB mention
+                        const isGmbMatch = urlItem.cleanedFullUrl.includes(gmbUrlCleaned) || gmbUrlCleaned.includes(urlItem.cleanedFullUrl);
+                        if (urlItem.index < firstGmbMentionIndex && !isGmbMatch) {
+                             precedingOtherUrlsForGmb.add(urlItem.cleanedFullUrl); 
+                        }
+                    }
+                    gmbLinkPosition = precedingOtherUrlsForGmb.size + 1;
+                }
+            }
+
+
             return {
                 brandMentionPosition: brandMentionRank,
                 linkPosition: linkRank,
                 numBrandMentions: brandMentionsCount,
                 numDomainMentions: brandDomainMentionsCount,
+                numGmbMentions: numGmbMentions, 
+                gmbLinkPosition: gmbLinkPosition, 
                 otherBrands: otherBrandNames.join(', ') || "NA",
                 otherDomains: uniqueOtherDomains.join(', ') || "NA",
             };
         }
 
-        /**
-         * Adds a single result row to the HTML table.
-         * @param {string} prompt - The original prompt.
-         * @param {object} result - The analysis result object.
-         * @param {string} fullResponse - The full text response for the modal.
-         */
         function addResultToTable(prompt, result, fullResponse) {
             const row = resultsTableBody.insertRow();
             
             const promptCell = row.insertCell();
-            promptCell.textContent = prompt.length > 60 ? prompt.substring(0, 57) + "..." : prompt;
-            if(prompt.length > 60) promptCell.title = prompt; 
+            promptCell.textContent = prompt.length > 50 ? prompt.substring(0, 47) + "..." : prompt; 
+            if(prompt.length > 50) promptCell.title = prompt; 
 
             row.insertCell().textContent = result.brandMentionPosition;
             row.insertCell().textContent = result.linkPosition;
             row.insertCell().textContent = result.numBrandMentions;
             row.insertCell().textContent = result.numDomainMentions;
+            row.insertCell().textContent = result.numGmbMentions; 
+            row.insertCell().textContent = result.gmbLinkPosition; 
             
             const otherBrandsCell = row.insertCell();
-            otherBrandsCell.textContent = result.otherBrands.length > 40 ? result.otherBrands.substring(0,37) + "..." : result.otherBrands;
-            if(result.otherBrands.length > 40) otherBrandsCell.title = result.otherBrands;
+            otherBrandsCell.textContent = result.otherBrands.length > 30 ? result.otherBrands.substring(0,27) + "..." : result.otherBrands; 
+            if(result.otherBrands.length > 30) otherBrandsCell.title = result.otherBrands;
 
             const otherDomainsCell = row.insertCell();
-            otherDomainsCell.textContent = result.otherDomains.length > 40 ? result.otherDomains.substring(0,37) + "..." : result.otherDomains;
-            if(result.otherDomains.length > 40) otherDomainsCell.title = result.otherDomains;
+            otherDomainsCell.textContent = result.otherDomains.length > 30 ? result.otherDomains.substring(0,27) + "..." : result.otherDomains; 
+            if(result.otherDomains.length > 30) otherDomainsCell.title = result.otherDomains;
             
             const viewCell = row.insertCell();
             const viewButton = document.createElement('button');
@@ -683,56 +482,39 @@
             viewButton.style.border = '1px solid #007bbf';
             viewButton.onmouseover = () => { viewButton.style.backgroundColor = '#e7f3fe'; };
             viewButton.onmouseout = () => { viewButton.style.backgroundColor = 'transparent'; };
-
             viewButton.onclick = () => {
-                modalResponseBody.textContent = fullResponse; // Display original full response, even if it was an error string
+                modalResponseBody.textContent = fullResponse; 
                 responseModal.classList.remove('hidden');
             };
             viewCell.appendChild(viewButton);
         }
 
-        /**
-         * Converts an array of objects to CSV format.
-         * @param {object[]} data - Array of result objects.
-         * @returns {string} CSV formatted string.
-         */
         function convertToCSV(data) {
-            if (!data || data.length === 0) {
-                return "";
-            }
+            if (!data || data.length === 0) { return ""; }
             const headers = [
                 "Prompt", "Brand Mention Position", "Link Position", 
                 "# Brand Mentions", "# Domain/URL Mentions", 
+                "# GMB/Maps Mentions", "GMB/Maps Link Position", 
                 "Other Brands Mentioned", "Other Domains Mentioned", "Full Response"
             ];
             const csvRows = [headers.join(',')]; 
-
             data.forEach(row => {
                 const values = [
                     `"${(row.prompt || "").replace(/"/g, '""')}"`, 
-                    row.brandMentionPosition,
-                    row.linkPosition,
-                    row.numBrandMentions,
-                    row.numDomainMentions,
+                    row.brandMentionPosition, row.linkPosition,
+                    row.numBrandMentions, row.numDomainMentions,
+                    row.numGmbMentions, row.gmbLinkPosition, 
                     `"${(row.otherBrands || "NA").replace(/"/g, '""')}"`,
                     `"${(row.otherDomains || "NA").replace(/"/g, '""')}"`,
-                    // Ensure fullResponse is treated as a string for CSV, replace newlines
                     `"${(String(row.fullResponse) || "").replace(/"/g, '""').replace(/\n/g, '  ')}"`
                 ];
                 csvRows.push(values.join(','));
             });
-
             return csvRows.join('\n');
         }
 
-        /**
-         * Triggers the download of the results table as a CSV file.
-         */
         function downloadTableAsCSV() {
-            if (tableData.length === 0) {
-                alert("No data to download.");
-                return;
-            }
+            if (tableData.length === 0) { alert("No data to download."); return; }
             const csvString = convertToCSV(tableData);
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
