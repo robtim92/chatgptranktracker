@@ -1,4 +1,4 @@
-// server.js (Heroku - Simplified CORS Origin)
+// server.js (Heroku - No Catch-All Route for Debugging Startup)
 require('dotenv').config(); // For local development, Heroku uses Config Vars
 const express = require('express');
 const OpenAI = require('openai');
@@ -18,16 +18,13 @@ const openai = new OpenAI({
 });
 
 // --- CORS Configuration ---
-// Define allowed origins for CORS.
 const allowedOrigins = [
     'https://chatgpt-rank-tracker-c1ca935dd7cf.herokuapp.com', // Your specific Heroku frontend URL
     // Add your local frontend URL if you test locally, e.g., 'http://127.0.0.1:5500'
 ];
-// If you have a custom domain for Heroku later, add it here too.
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (e.g., Postman, curl) or if origin is in allowedOrigins
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
@@ -46,6 +43,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // --- Static File Serving (for Heroku) ---
+// This will serve index.html from the 'public' folder for GET requests to '/'
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- API Routes ---
@@ -100,12 +98,14 @@ app.post('/api/analyze-prompt', async (req, res) => {
 });
 
 // --- Catch-all for Frontend (SPA-like behavior) ---
+// Temporarily commented out for debugging startup
+/*
 app.get('*', (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] Serving index.html (catch-all) for GET request to: ${req.path} from IP: ${req.ip}`);
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
+*/
 
 // --- Server Start ---
 app.listen(port, () => {
@@ -116,4 +116,5 @@ app.listen(port, () => {
     console.log(`[${timestamp}] Static files served from 'public' directory.`);
     console.log(`[${timestamp}] API endpoint POST /api/analyze-prompt is active.`);
     console.log(`[${timestamp}] Health check GET /health is available.`);
+    console.log(`[${timestamp}] Note: Catch-all app.get('*') route is currently COMMENTED OUT for debugging.`);
 });
