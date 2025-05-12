@@ -1,4 +1,4 @@
-// server.js (Heroku Ready - Final Version)
+// server.js (Heroku - Simplified CORS Origin)
 require('dotenv').config(); // For local development, Heroku uses Config Vars
 const express = require('express');
 const OpenAI = require('openai');
@@ -10,8 +10,6 @@ const app = express();
 const port = process.env.PORT || 3000; 
 
 // --- OpenAI Client Initialization ---
-// On Heroku, OPENAI_API_KEY will be a Config Var, not from a .env file.
-// This log helps confirm if the key is missing during runtime on Heroku.
 if (!process.env.OPENAI_API_KEY) {
     console.log(`[${new Date().toISOString()}] Note: OPENAI_API_KEY not found in environment variables. This is expected if running locally without a .env file or if not set as a Config Var on Heroku. API calls will fail if the key is missing at runtime.`);
 }
@@ -23,9 +21,9 @@ const openai = new OpenAI({
 // Define allowed origins for CORS.
 const allowedOrigins = [
     'https://chatgpt-rank-tracker-c1ca935dd7cf.herokuapp.com', // Your specific Heroku frontend URL
-    // Add your local frontend URL if you test locally, e.g., 'http://127.0.0.1:5500' (from VS Code Live Server)
-    // or 'http://localhost:YOUR_FRONTEND_PORT'
-].filter(Boolean); // .filter(Boolean) removes any null/undefined entries if HEROKU_APP_NAME isn't set
+    // Add your local frontend URL if you test locally, e.g., 'http://127.0.0.1:5500'
+];
+// If you have a custom domain for Heroku later, add it here too.
 
 const corsOptions = {
     origin: function (origin, callback) {
@@ -38,41 +36,30 @@ const corsOptions = {
             callback(new Error(msg), false);
         }
     },
-    methods: ['GET', 'POST', 'OPTIONS'], // Explicitly list allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly list allowed request headers
-    credentials: true, // Set to true if you plan to use cookies or authorization headers
-    optionsSuccessStatus: 204 // Sets the status for successful OPTIONS pre-flight requests
+    methods: ['GET', 'POST', 'OPTIONS'], 
+    allowedHeaders: ['Content-Type', 'Authorization'], 
+    credentials: true, 
+    optionsSuccessStatus: 204 
 };
 
-// Apply CORS middleware with the defined options.
-// This should be one of the first middleware registered.
 app.use(cors(corsOptions));
-
-// Middleware to parse incoming JSON request bodies
 app.use(express.json());
 
 // --- Static File Serving (for Heroku) ---
-// Serve static files (index.html, and any CSS/JS you might add later)
-// from the 'public' directory.
-// This line allows Express to find and serve your frontend.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- API Routes ---
-
-// Health check endpoint (optional, but good for verifying the backend is responsive)
 app.get('/health', (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] Health check path /health was hit from IP: ${req.ip}`);
     res.status(200).send(`[${timestamp}] Backend is running. API endpoint is at POST /api/analyze-prompt.`);
 });
 
-// API endpoint to handle prompt analysis
 app.post('/api/analyze-prompt', async (req, res) => {
     const timestamp = new Date().toISOString();
     const { prompt } = req.body;
     console.log(`[${timestamp}] Received POST request to /api/analyze-prompt with prompt: "${prompt}" from IP: ${req.ip}`);
 
-    // Runtime check for OpenAI API Key
     if (!process.env.OPENAI_API_KEY) {
         console.error(`[${timestamp}] FATAL ERROR (runtime): OpenAI API Key is not configured on the server for API call.`);
         return res.status(500).json({ error: 'Server configuration error: OpenAI API Key missing.' });
@@ -86,7 +73,7 @@ app.post('/api/analyze-prompt', async (req, res) => {
     try {
         console.log(`[${timestamp}] Calling OpenAI with model "gpt-4o-search-preview" for prompt: "${prompt}"`);
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o-search-preview", // Using the web-search enabled model
+            model: "gpt-4o-search-preview", 
             messages: [{ role: "user", content: prompt }],
         });
 
@@ -107,15 +94,12 @@ app.post('/api/analyze-prompt', async (req, res) => {
         res.status(500).json({ 
             error: 'Failed to analyze prompt with OpenAI', 
             details: error.message,
-            // Include OpenAI's error response if available, for more detailed debugging
             responseData: error.response ? error.response.data : null 
         });
     }
 });
 
 // --- Catch-all for Frontend (SPA-like behavior) ---
-// This route MUST come AFTER your API routes and AFTER app.use(express.static(...)).
-// It serves your public/index.html for any GET request that doesn't match an API route or an existing static file.
 app.get('*', (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] Serving index.html (catch-all) for GET request to: ${req.path} from IP: ${req.ip}`);
@@ -127,8 +111,7 @@ app.get('*', (req, res) => {
 app.listen(port, () => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] Backend server running on port ${port}`);
-    // Filter out null/undefined from allowedOrigins before joining, in case HEROKU_APP_NAME isn't set
-    console.log(`[${timestamp}] CORS enabled for origins: ${allowedOrigins.filter(Boolean).join(', ')}`);
+    console.log(`[${timestamp}] CORS enabled for origins: ${allowedOrigins.join(', ')}`);
     console.log(`[${timestamp}] OpenAI Model: gpt-4o-search-preview`);
     console.log(`[${timestamp}] Static files served from 'public' directory.`);
     console.log(`[${timestamp}] API endpoint POST /api/analyze-prompt is active.`);
