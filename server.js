@@ -1,4 +1,4 @@
-// server.js (Revised CORS Setup for Debugging)
+// server.js (Ultra-Simplified for Debugging - This version worked for Postman)
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -14,6 +14,8 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function (origin, callback) {
+        // Allow requests with no origin (like Postman, curl, or server-to-server)
+        // OR if the origin is in our allowed list.
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -23,18 +25,17 @@ const corsOptions = {
         }
     },
     methods: ['GET', 'POST', 'OPTIONS'], // Ensure OPTIONS is listed
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    preflightContinue: false, // Pass the OPTIONS request to the next handler if needed (usually false)
-    optionsSuccessStatus: 204 // Some legacy browsers (IE11, various SmartTVs) choke on 204
+    allowedHeaders: ['Content-Type', 'Authorization'], // Ensure Content-Type is allowed
+    credentials: true, // If you plan to use cookies/auth headers later
+    // preflightContinue: false, // Default is false, usually fine.
+    optionsSuccessStatus: 204 // Sets the response status for successful OPTIONS requests
 };
 
 // Apply CORS middleware with options. This should be one of the first middleware.
 // It will handle OPTIONS pre-flight requests automatically for routes defined after it.
 app.use(cors(corsOptions));
 
-// Middleware to parse JSON request bodies - should come after CORS if CORS needs to inspect headers first,
-// but generally safe here.
+// Middleware to parse JSON request bodies
 app.use(express.json());
 
 // Root GET route for basic health check
@@ -55,6 +56,7 @@ app.all('/api/analyze-prompt', (req, res) => {
         console.log(`[${timestamp}] Request Query:`, JSON.stringify(req.query, null, 2));
     }
 
+    // Just send a simple success response
     res.status(200).json({
         message: `[${timestamp}] Request to /api/analyze-prompt with method ${req.method} received successfully.`,
         receivedPrompt: req.body.prompt || req.query.prompt || "No prompt found"
