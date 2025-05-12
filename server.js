@@ -1,94 +1,71 @@
-   // server.js
-   require('dotenv').config(); 
-   const express = require('express');
-   const OpenAI = require('openai');
-   const cors = require('cors');
+// server.js (Ultra-Simplified for Debugging)
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors'); // Keep CORS
 
-   const app = express();
-   const port = process.env.PORT || 3000; 
+const app = express();
+const port = process.env.PORT || 3000;
 
-   if (!process.env.OPENAI_API_KEY) {
-       console.error("FATAL ERROR: OPENAI_API_KEY is not set in the .env file.");
-       process.exit(1); 
-   }
-   const openai = new OpenAI({
-       apiKey: process.env.OPENAI_API_KEY,
-   });
+// --- Specific CORS Configuration ---
+const allowedOrigins = [
+    'https://chatgptranktracker-frm3.onrender.com',
+    // Add local dev URL if needed, e.g., 'http://localhost:5500' or your specific local port
+];
 
-   const allowedOrigins = [
-       'https://chatgptranktracker-frm3.onrender.com',
-       // Add your local development frontend URL if needed: e.g., 'http://localhost:5500'
-       // (assuming you might run your HTML locally with a live server on a port like 5500)
-   ];
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like Postman, curl, or server-to-server)
+        // OR if the origin is in our allowed list.
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            const msg = `CORS policy: Origin ${origin} not allowed.`;
+            console.error(`[${new Date().toISOString()}] ${msg}`);
+            callback(new Error(msg), false);
+        }
+    },
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'], // Ensure Content-Type is allowed
+    credentials: true // If you plan to use cookies/auth headers later
+};
 
-   const corsOptions = {
-       origin: function (origin, callback) {
-           if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-               callback(null, true);
-           } else {
-               const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-               console.error(`CORS Error: Origin ${origin} not allowed.`); // Log CORS block
-               callback(new Error(msg), false);
-           }
-       },
-       methods: ['GET', 'POST', 'OPTIONS'], 
-       allowedHeaders: ['Content-Type', 'Authorization'], 
-       credentials: true 
-   };
+// It's crucial that app.use(cors(corsOptions)) comes BEFORE your routes.
+// And also app.options for pre-flight requests.
+app.options('*', cors(corsOptions)); // Handle pre-flight requests for all routes
+app.use(cors(corsOptions));         // Apply CORS to all subsequent routes
 
-   app.use(cors(corsOptions));
-   app.use(express.json()); 
+app.use(express.json()); // Middleware to parse JSON request bodies
 
-   // --- ADDED: Simple root route for health check ---
-   app.get('/', (req, res) => {
-       console.log('Root path / was hit with a GET request.'); // Log when root is accessed
-       res.status(200).send('Backend is running. API endpoint is at POST /api/analyze-prompt');
-   });
+// Root GET route for basic health check
+app.get('/', (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Root path / was hit with a GET request from IP: ${req.ip}`);
+    res.status(200).send(`[${timestamp}] Backend is running. API endpoint is at /api/analyze-prompt (accepts POST).`);
+});
 
-   app.post('/api/analyze-prompt', async (req, res) => {
-       const { prompt } = req.body;
-       console.log(`Received POST request to /api/analyze-prompt with prompt: "${prompt}"`); // More specific log
+// Ultra-simplified /api/analyze-prompt for debugging
+// This will accept ANY method to /api/analyze-prompt to see if anything gets through
+app.all('/api/analyze-prompt', (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Request received for /api/analyze-prompt with METHOD: ${req.method} from IP: ${req.ip}`);
+    console.log(`[${timestamp}] Request Headers:`, JSON.stringify(req.headers, null, 2));
+    if (req.method === 'POST') {
+        console.log(`[${timestamp}] Request Body:`, JSON.stringify(req.body, null, 2));
+    } else if (req.method === 'GET') {
+        console.log(`[${timestamp}] Request Query:`, JSON.stringify(req.query, null, 2));
+    }
 
-       if (!prompt) {
-           console.log('Prompt is missing, returning 400.');
-           return res.status(400).json({ error: 'Prompt is required' });
-       }
+    // Just send a simple success response
+    res.status(200).json({ 
+        message: `[${timestamp}] Request to /api/analyze-prompt with method ${req.method} received successfully.`,
+        receivedPrompt: req.body.prompt || req.query.prompt || "No prompt found"
+    });
+});
 
-       try {
-           console.log(`Calling OpenAI with model gpt-4o-search-preview for prompt: "${prompt}"`);
-           const completion = await openai.chat.completions.create({
-               model: "gpt-4o-search-preview", 
-               messages: [{ role: "user", content: prompt }],
-           });
-
-           console.log("OpenAI API response received successfully.");
-           
-           if (completion.choices && completion.choices.length > 0 && completion.choices[0].message) {
-               res.json({ response: completion.choices[0].message.content });
-           } else {
-               console.error("Unexpected OpenAI API response structure:", completion);
-               res.status(500).json({ error: 'Failed to get a valid response from OpenAI API' });
-           }
-
-       } catch (error) {
-           console.error('Error calling OpenAI API:', error.response ? error.response.data : error.message);
-           if (error.response) {
-               console.error('OpenAI Error Status:', error.response.status);
-               console.error('OpenAI Error Headers:', error.response.headers);
-               console.error('OpenAI Error Data:', error.response.data);
-           }
-           res.status(500).json({ 
-               error: 'Failed to analyze prompt with OpenAI (web search)', 
-               details: error.message,
-               responseData: error.response ? error.response.data : null
-           });
-       }
-   });
-
-   app.listen(port, () => {
-       console.log(`Backend server running on port ${port}`);
-       console.log(`CORS enabled for origins: ${allowedOrigins.join(', ')}`);
-       console.log("Using OpenAI model: gpt-4o-search-preview");
-       console.log("Root GET path / is available for health check."); // New log
-   });
-   
+app.listen(port, () => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Backend server running on port ${port}`);
+    console.log(`[${timestamp}] CORS enabled for origins: ${allowedOrigins.join(', ')}`);
+    console.log(`[${timestamp}] Root GET path / is available for health check.`);
+    console.log(`[${timestamp}] Path /api/analyze-prompt now accepts ALL methods for debugging and will log details.`);
+});
