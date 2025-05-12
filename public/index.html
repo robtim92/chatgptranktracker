@@ -207,8 +207,8 @@ Tell me about project management software." required></textarea>
         // --- Core Functions ---
         async function getOpenAIResponse(prompt) {
             console.log(`Sending prompt to backend: "${prompt}"`);
-            // ** Ensure this URL matches your deployed backend service URL on Render **
-            const backendApiUrl = 'https://chatgptranktracker.onrender.com/api/analyze-prompt'; 
+            // ** Updated for Heroku deployment **
+            const backendApiUrl = 'https://chatgpt-rank-tracker.herokuapp.com/api/analyze-prompt'; 
 
             try {
                 const response = await fetch(backendApiUrl, { 
@@ -219,15 +219,11 @@ Tell me about project management software." required></textarea>
                 if (!response.ok) { // Check if response status is 200-299
                     let errorData;
                     try { 
-                        // Try to parse error response as JSON, which our backend should send
                         errorData = await response.json(); 
                     } catch (e) { 
-                        // If backend error is not JSON or parsing fails, use status text
                         errorData = { error: response.statusText }; 
                     }
-                    // Log detailed error information
                     console.error('Error from backend:', errorData, 'Status:', response.status); 
-                    // Throw an error that includes the backend's message or a generic HTTP error
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
@@ -235,10 +231,9 @@ Tell me about project management software." required></textarea>
                     console.error('Unexpected response structure from backend:', data);
                     throw new Error('Received invalid response format from server.');
                 }
-                return data.response; // This is the text from the OpenAI API
-            } catch (error) { // Catches network errors or errors thrown from !response.ok
+                return data.response;
+            } catch (error) { 
                 console.error('Failed to fetch OpenAI response from backend:', error);
-                // Return a user-friendly error message to be displayed in the table
                 return `Error: Could not get response for prompt. Details: ${error.message}`;
             }
         }
@@ -278,7 +273,7 @@ Tell me about project management software." required></textarea>
                 if (!prompt) continue;
                 const fullResponse = await getOpenAIResponse(prompt); 
                 let analysisResult;
-                if (fullResponse.startsWith("Error:")) { // Check if our getOpenAIResponse returned an error string
+                if (fullResponse.startsWith("Error:")) { 
                     analysisResult = {
                         brandMentionPosition: "Error", linkPosition: "Error",
                         numBrandMentions: "Error", numDomainMentions: "Error",
@@ -429,7 +424,6 @@ Tell me about project management software." required></textarea>
                 });
                 
                 if (numGmbMentions > 0) {
-                    // gmbUrlMentionsObjects are already sorted by index because allUrlMentions was.
                     const firstGmbMentionIndex = gmbUrlMentionsObjects[0].index;
                     let rank = 1;
                     const precedingOtherUrlsForGmb = new Set();

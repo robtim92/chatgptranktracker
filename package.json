@@ -1,14 +1,23 @@
 {
   "name": "chatgptrankingstracker",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Tracks brand visibility in ChatGPT responses.",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "engines": {
+    "node": "20.x"
+  },
+  "keywords": [
+    "seo",
+    "chatgpt",
+    "brand-visibility",
+    "openai"
+  ],
+  "author": "Your Name or Company",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

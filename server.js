@@ -1,16 +1,19 @@
-// server.js (Reset to include OpenAI API calls with robust CORS)
-require('dotenv').config();
+// server.js (For Heroku - Serves static files and API)
+require('dotenv').config(); // For local development, Heroku uses Config Vars
 const express = require('express');
 const OpenAI = require('openai');
 const cors = require('cors');
+const path = require('path'); // Required for serving static files
 
 const app = express();
-const port = process.env.PORT || 3000; // Use Render's port or 3000 for local
+const port = process.env.PORT || 3000; // Heroku sets PORT environment variable
 
 // --- OpenAI Client Initialization ---
+// Check for API key. On Heroku, this will be a Config Var.
 if (!process.env.OPENAI_API_KEY) {
-    console.error(`[${new Date().toISOString()}] FATAL ERROR: OPENAI_API_KEY is not set in the .env file.`);
-    process.exit(1); // Exit if key is not found
+    console.log(`[${new Date().toISOString()}] Note: OPENAI_API_KEY not found in .env. This is expected if running on Heroku and it's set as a Config Var. If not set on Heroku, API calls will fail.`);
+    // We don't process.exit(1) here to allow Heroku deployment to proceed,
+    // but API calls will fail if the Config Var isn't actually set on Heroku.
 }
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -18,15 +21,17 @@ const openai = new OpenAI({
 
 // --- CORS Configuration ---
 const allowedOrigins = [
-    'https://chatgptranktracker-frm3.onrender.com', // Your deployed frontend URL
+    'https://chatgpt-rank-tracker.herokuapp.com', // Your Heroku app URL
+    `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`, // Dynamic Heroku app URL (if HEROKU_APP_NAME is available)
     // Add your local frontend URL if you test locally, e.g., 'http://127.0.0.1:5500' or 'http://localhost:xxxx'
-    // Make sure the port matches if you use a live server extension for local HTML.
+    // (Make sure the port matches if you use a live server for public/index.html)
 ];
 
 const corsOptions = {
     origin: function (origin, callback) {
         // Allow requests with no origin (like Postman, curl) or from allowed origins
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        // The .some() check handles the case where HEROKU_APP_NAME might not be defined yet during build
+        if (!origin || allowedOrigins.some(allowedOrigin => allowedOrigin && origin && origin.startsWith(allowedOrigin))) {
             callback(null, true);
         } else {
             const msg = `CORS policy: Origin ${origin} not allowed.`;
@@ -41,18 +46,25 @@ const corsOptions = {
 };
 
 // Apply CORS middleware. This should be among the first middleware.
-// It handles pre-flight OPTIONS requests automatically.
 app.use(cors(corsOptions));
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
 
-// --- Routes ---
+// --- Static File Serving (for Heroku) ---
+// Serve static files (like index.html, css, js) from the 'public' directory
+// This line should come before any catch-all routes like app.get('*', ...).
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Root GET route for basic health check
-app.get('/', (req, res) => {
+// --- API Routes ---
+
+// Root GET route for basic health check (will be overridden by static serving if index.html exists at root of public)
+// However, if public/index.html is served, this specific / route handler might not be hit directly by browser.
+// The static server will serve public/index.html for GET /.
+// This is fine, the main purpose is that the server is up.
+app.get('/health', (req, res) => { // Changed to /health to avoid conflict with static index.html
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Root path / was hit with a GET request from IP: ${req.ip}`);
+    console.log(`[${timestamp}] Health check path /health was hit from IP: ${req.ip}`);
     res.status(200).send(`[${timestamp}] Backend is running. API endpoint is at POST /api/analyze-prompt.`);
 });
 
@@ -62,6 +74,10 @@ app.post('/api/analyze-prompt', async (req, res) => {
     const { prompt } = req.body;
     console.log(`[${timestamp}] Received POST request to /api/analyze-prompt with prompt: "${prompt}" from IP: ${req.ip}`);
 
+    if (!process.env.OPENAI_API_KEY) {
+        console.error(`[${timestamp}] FATAL ERROR (runtime): OpenAI API Key is not configured on the server.`);
+        return res.status(500).json({ error: 'Server configuration error: OpenAI API Key missing.' });
+    }
     if (!prompt) {
         console.log(`[${timestamp}] Prompt is missing, returning 400.`);
         return res.status(400).json({ error: 'Prompt is required' });
@@ -96,12 +112,23 @@ app.post('/api/analyze-prompt', async (req, res) => {
     }
 });
 
+// --- Catch-all for Frontend (SPA-like behavior) ---
+// This route MUST come AFTER your API routes and AFTER app.use(express.static(...)).
+// It serves your index.html for any GET request that doesn't match an API route or an existing static file.
+app.get('*', (req, res) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Serving index.html (catch-all) for GET request to: ${req.path} from IP: ${req.ip}`);
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+
 // --- Server Start ---
 app.listen(port, () => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] Backend server running on port ${port}`);
-    console.log(`[${timestamp}] CORS enabled for origins: ${allowedOrigins.join(', ')}`);
+    console.log(`[${timestamp}] CORS enabled for origins: ${allowedOrigins.filter(Boolean).join(', ')} (Note: HEROKU_APP_NAME env var might not be available at build time, check runtime)`);
     console.log(`[${timestamp}] OpenAI Model: gpt-4o-search-preview`);
-    console.log(`[${timestamp}] Root GET path / is available for health check.`);
+    console.log(`[${timestamp}] Static files served from 'public' directory.`);
     console.log(`[${timestamp}] API endpoint POST /api/analyze-prompt is active.`);
+    console.log(`[${timestamp}] Health check GET /health is available.`);
 });
