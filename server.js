@@ -1,7 +1,7 @@
-// server.js (Ultra-Simplified for Debugging)
+// server.js (Revised CORS Setup for Debugging)
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors'); // Keep CORS
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,8 +14,6 @@ const allowedOrigins = [
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // Allow requests with no origin (like Postman, curl, or server-to-server)
-        // OR if the origin is in our allowed list.
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
@@ -24,17 +22,20 @@ const corsOptions = {
             callback(new Error(msg), false);
         }
     },
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'], // Ensure Content-Type is allowed
-    credentials: true // If you plan to use cookies/auth headers later
+    methods: ['GET', 'POST', 'OPTIONS'], // Ensure OPTIONS is listed
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    preflightContinue: false, // Pass the OPTIONS request to the next handler if needed (usually false)
+    optionsSuccessStatus: 204 // Some legacy browsers (IE11, various SmartTVs) choke on 204
 };
 
-// It's crucial that app.use(cors(corsOptions)) comes BEFORE your routes.
-// And also app.options for pre-flight requests.
-app.options('*', cors(corsOptions)); // Handle pre-flight requests for all routes
-app.use(cors(corsOptions));         // Apply CORS to all subsequent routes
+// Apply CORS middleware with options. This should be one of the first middleware.
+// It will handle OPTIONS pre-flight requests automatically for routes defined after it.
+app.use(cors(corsOptions));
 
-app.use(express.json()); // Middleware to parse JSON request bodies
+// Middleware to parse JSON request bodies - should come after CORS if CORS needs to inspect headers first,
+// but generally safe here.
+app.use(express.json());
 
 // Root GET route for basic health check
 app.get('/', (req, res) => {
@@ -44,7 +45,6 @@ app.get('/', (req, res) => {
 });
 
 // Ultra-simplified /api/analyze-prompt for debugging
-// This will accept ANY method to /api/analyze-prompt to see if anything gets through
 app.all('/api/analyze-prompt', (req, res) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] Request received for /api/analyze-prompt with METHOD: ${req.method} from IP: ${req.ip}`);
@@ -55,8 +55,7 @@ app.all('/api/analyze-prompt', (req, res) => {
         console.log(`[${timestamp}] Request Query:`, JSON.stringify(req.query, null, 2));
     }
 
-    // Just send a simple success response
-    res.status(200).json({ 
+    res.status(200).json({
         message: `[${timestamp}] Request to /api/analyze-prompt with method ${req.method} received successfully.`,
         receivedPrompt: req.body.prompt || req.query.prompt || "No prompt found"
     });
