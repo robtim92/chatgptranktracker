@@ -207,7 +207,6 @@ Tell me about project management software." required></textarea>
         // --- Core Functions ---
         async function getOpenAIResponse(prompt) {
             console.log(`Sending prompt to backend: "${prompt}"`);
-            // ** Updated for your specific Heroku app URL **
             const backendApiUrl = 'https://chatgpt-rank-tracker-c1ca935dd7cf.herokuapp.com/api/analyze-prompt'; 
 
             try {
@@ -328,47 +327,135 @@ Tell me about project management software." required></textarea>
             });
             brandMentionPositions.sort((a, b) => a.index - b.index);
 
-            const potentialBrandRegex = /\b([A-Z][a-zA-Z0-9]*(?:\s+[A-Z][a-zA-Z0-9]*)*)\b/g;
-            let allBrandLikeMentions = [];
-            let match;
-            while((match = potentialBrandRegex.exec(responseText)) !== null) {
-                const potentialBrand = match[1];
-                if (!brandNames.some(bn => potentialBrand.toLowerCase() === bn.toLowerCase())) {
-                     allBrandLikeMentions.push({ name: potentialBrand, index: match.index });
-                }
-            }
-            const commonOtherBrands = ["Salesforce", "HubSpot", "Zoho CRM", "Asana", "Trello", "Monday.com", "Google Drive", "Dropbox", "OneDrive", "XTool", "YPlatform", "CompetitorA", "CompetitorB", "PipeDrive", "Jira", "Box.com", "ZService", "ProductC"];
-            commonOtherBrands.forEach(ob => {
-                const escapedOb = escapeRegExp(ob);
-                if (!escapedOb) return;
+            // --- Refined "Other Brands" detection ---
+            const allFoundOtherMentions = [];
+            
+            // 1. Known common brands (case-insensitive check against user's brand)
+            const knownCompetitorBrands = new Set([ 
+                "Salesforce", "HubSpot", "Zoho CRM", "Asana", "Trello", "Monday.com", 
+                "Google Drive", "Dropbox", "OneDrive", "XTool", "YPlatform", 
+                "CompetitorA", "CompetitorB", "PipeDrive", "Jira", "Box.com", 
+                "ZService", "ProductC", "LawnGuru", "LawnStarter", "GreenLight Landscaping",
+                "Sharpe Cuts", "EAZY CUTZ LAWN CARE", "Green Scene Turf Management", "Triple R Landscape Supply"
+            ]);
+            knownCompetitorBrands.forEach(cob => {
+                const cobLower = cob.toLowerCase();
+                // Only add if it's NOT one of the user's input brand names/variations
+                if (brandNames.includes(cobLower)) return; 
+
+                const escapedCob = escapeRegExp(cob);
+                if (!escapedCob) return;
                 try {
-                    const obRegex = new RegExp(`\\b${escapedOb}\\b`, 'gi');
-                    let obMatch;
-                    while((obMatch = obRegex.exec(responseText)) !== null) {
-                        const foundBrandName = obMatch[0];
-                        if (!brandNames.some(bn => foundBrandName.toLowerCase() === bn.toLowerCase()) && 
-                            !allBrandLikeMentions.some(abm => abm.name.toLowerCase() === foundBrandName.toLowerCase())) {
-                            allBrandLikeMentions.push({ name: foundBrandName, index: obMatch.index });
-                        }
+                    const regex = new RegExp(`\\b${escapedCob}\\b`, 'gi');
+                    let match;
+                    while ((match = regex.exec(responseText)) !== null) {
+                        allFoundOtherMentions.push({ name: match[0], index: match.index, type: "known" });
                     }
-                } catch (e) { console.error(`Error creating regex for common brand "${ob}":`, e); }
+                } catch (e) { console.error(`Error creating regex for known competitor "${cob}":`, e); }
             });
-            allBrandLikeMentions.sort((a, b) => a.index - b.index);
-            const uniqueOtherBrandMentions = [];
-            const seenOtherBrands = new Set();
-            for (const item of allBrandLikeMentions) {
-                if (!seenOtherBrands.has(item.name.toLowerCase())) {
-                    uniqueOtherBrandMentions.push(item);
-                    seenOtherBrands.add(item.name.toLowerCase());
+
+            // 2. Regex for potential proper nouns (multi-word capitalized phrases)
+            //    Looking for 1 to 6 capitalized words.
+            const potentialBrandRegex = /\b([A-Z][a-zA-Z0-9'&/-]+(?:\s+[A-Z][a-zA-Z0-9'&/-]+){0,5})\b/g;
+            let regexMatch;
+            
+            const generalExclusionList = new Set([
+                // Common English words that might be capitalized at sentence start
+                'if', 'is', 'it', 'a', 'an', 'the', 'and', 'or', 'but', 'so', 'open', 'offers', 'provides', 
+                'specializes', 'closed', 'when', 'additionally', 'remember', 'also', 'however', 'therefore', 
+                'example', 'including', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'any', 
+                'are', "aren't", 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 
+                'both', 'by', "can't", 'cannot', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 
+                'doing', "don't", 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', "hadn't", 
+                'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', 
+                "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'i', "i'd", "i'll", "i'm", 
+                "i've", "isn't", 'its', 'itself', "let's", 'me', 'more', 'most', "mustn't", 'my', 'myself', 
+                'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'other', 'ought', 'our', 'ours', 
+                'ourselves', 'out', 'over', 'own', 'same', "shan't", 'she', "she'd", "she'll", "she's", 
+                'should', "shouldn't", 'some', 'such', 'than', 'that', "that's", 'their', 
+                'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", 
+                "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 
+                'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 
+                'what', "what's", "where's", "which", 'while', 'who', "who's", 'whom', 'why', "why's", 'with', 
+                "won't", 'would', "wouldn't", 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 
+                'yourself', 'yourselves',
+                // Common suffixes & generic business/location terms
+                'llc', 'inc', 'corp', 'ltd', 'co', 'gmbh', 'group', 'services', 'solutions', 'company', 'center', 'store',
+                'shop', 'agency', 'studio', 'enterprises', 'associates', 'industries', 'systems', 'technologies',
+                'rd', 'ln', 'st', 'ave', 'blvd', 'dr', 'ct', 'road', 'lane', 'street', 'avenue', 'boulevard', 'drive', 'court', 'way', 'parkway', 'pkwy',
+                'nc', 'ca', 'ny', 'tx', 'fl', 'ga', 'oh', 'pa', 'il', 'mi', // Common state codes
+                'north', 'south', 'east', 'west', 'january', 'february', 'march', 'april', 'may', 'june', 'july',
+                'august', 'september', 'october', 'november', 'december', 'monday', 'tuesday', 'wednesday',
+                'thursday', 'friday', 'saturday', 'sunday',
+                'mr', 'mrs', 'ms', 'dr', 'prof', 'llp', 'gbr', 'ohg', 'kg', 'sa', 'srl', 'spa', 'as', 'ab', 'oy', 'aps',
+                'pte', 'pty', 'sdn', 'bhd', 'pc', 'pa', 'esq', 'md', 'phd', 'dds', 'cpa', 'sr', 'jr', 'ii', 'iii', 'iv',
+                'city', 'county', 'state', 'country', 'university', 'college', 'school', 'hospital', 'foundation', 'institute',
+                'department', 'division', 'section', 'office', 'unit', 'team', 'program', 'project', 'committee',
+                'today', 'yesterday', 'tomorrow', 'website', 'page', 'link', 'online', 'internet', 'web', 'email', 'phone'
+            ]);
+
+            while((regexMatch = potentialBrandRegex.exec(responseText)) !== null) {
+                let potentialBrand = regexMatch[1].trim();
+                potentialBrand = potentialBrand.replace(/['’]s$/i, ''); // Remove possessive 's or ’s
+                potentialBrand = potentialBrand.replace(/[,.;:!?]$/, '').trim(); // Remove trailing punctuation
+
+                const lowerPotentialBrand = potentialBrand.toLowerCase();
+                const words = potentialBrand.split(/\s+/);
+
+                // Skip if it's one of the user's brands
+                if (brandNames.includes(lowerPotentialBrand)) continue;
+                // Skip if it's already identified as a known competitor
+                if (knownCompetitorBrands.has(potentialBrand) || Array.from(knownCompetitorBrands).some(kcb => kcb.toLowerCase() === lowerPotentialBrand)) continue;
+                // Skip if the whole phrase (lowercase) is in the general exclusion list
+                if (generalExclusionList.has(lowerPotentialBrand)) continue;
+                // Skip if it's a single word and that word (lowercase) is in the exclusion list, unless it's all caps (e.g. IBM)
+                if (words.length === 1 && generalExclusionList.has(lowerPotentialBrand) && !/^[A-Z0-9]+$/.test(potentialBrand)) continue;
+                // Skip very short words unless they are all caps (e.g. HP, IBM)
+                if (potentialBrand.length < 2) continue;
+                if (potentialBrand.length < 3 && !/^[A-Z0-9]{2}$/.test(potentialBrand)) continue;
+                 // Skip if it's just a state code or common abbreviation like "Rd."
+                if (words.length === 1 && /^[A-Z]{2}\.?$/.test(potentialBrand) && generalExclusionList.has(lowerPotentialBrand.replace('.', ''))) continue;
+
+
+                // More aggressive filtering for single words that are not all caps
+                if (words.length === 1 && potentialBrand !== potentialBrand.toUpperCase()) {
+                    // If it's a single capitalized word, be more skeptical. Only keep if it's not a common dictionary word.
+                    // This part is tricky without a full dictionary. We rely on the exclusion list for now.
+                    // Could add a check: if it's a single word and *not* on a known brands list, and *is* on a common words list, skip.
+                    // For now, the existing exclusion list check for single words handles this.
                 }
+                
+                // Heuristic: if it contains a comma and is short, likely a location fragment
+                if (potentialBrand.includes(',') && words.length <= 3) continue;
+
+                // Heuristic: if it ends with a common street suffix and is short (e.g. "Main St", "Cleveland Rd")
+                const lastWordLower = words[words.length - 1].toLowerCase().replace('.', '');
+                if (words.length <= 3 && ['rd','ln','st','ave','blvd','dr','ct','road','lane','street','avenue','drive','court', 'pike', 'hwy', 'trl'].includes(lastWordLower)) {
+                    continue;
+                }
+                
+                allFoundOtherMentions.push({ name: potentialBrand, index: regexMatch.index, type: "regex" });
             }
+            
+            // Combine, make unique by name (case-insensitive), and sort by index
+            const uniqueMentionsMap = new Map();
+            allFoundOtherMentions.sort((a, b) => a.index - b.index); 
+
+            allFoundOtherMentions.forEach(item => {
+                const lowerName = item.name.toLowerCase();
+                if (!uniqueMentionsMap.has(lowerName) && !brandNames.includes(lowerName)) {
+                    uniqueMentionsMap.set(lowerName, item);
+                }
+            });
+            
+            const uniqueOtherBrandMentions = Array.from(uniqueMentionsMap.values());
             const otherBrandNames = uniqueOtherBrandMentions.map(item => item.name);
 
             let brandMentionRank = "NA";
             if (brandMentionsCount > 0 && brandMentionPositions.length > 0) {
                 const firstBrandMentionIndex = brandMentionPositions[0].index;
                 let rank = 1;
-                for (const otherBrand of uniqueOtherBrandMentions) {
+                for (const otherBrand of uniqueOtherBrandMentions) { 
                     if (otherBrand.index < firstBrandMentionIndex) { rank++; }
                 }
                 brandMentionRank = rank;
@@ -531,124 +618,3 @@ Tell me about project management software." required></textarea>
     </script>
 </body>
 </html>
-```
-
-**Step 2: Restore `server.js` to Full Functionality**
-
-Now, let's use the `server.js` that includes the OpenAI API calls (from artifact `server_js_heroku_final_v1`), but ensure its `allowedOrigins` in the CORS configuration correctly lists your full Heroku app URL.
-
-
-```javascript
-// server.js (Restored Functionality for Heroku)
-require('dotenv').config(); 
-const express = require('express');
-const OpenAI = require('openai');
-const cors = require('cors');
-const path = require('path'); 
-
-const app = express();
-const port = process.env.PORT || 3000; 
-
-// --- OpenAI Client Initialization ---
-if (!process.env.OPENAI_API_KEY) {
-    console.log(`[${new Date().toISOString()}] Note: OPENAI_API_KEY not found in environment variables. This is expected if running locally without a .env file or if not set as a Config Var on Heroku. API calls will fail if the key is missing at runtime.`);
-}
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
-// --- CORS Configuration ---
-const allowedOrigins = [
-    'https://chatgpt-rank-tracker-c1ca935dd7cf.herokuapp.com', // Your specific Heroku frontend URL
-    // Add local dev URL if needed: 'http://127.0.0.1:5500' (or your local server port)
-];
-
-const corsOptions = {
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            const msg = `CORS policy: Origin ${origin} not allowed. Allowed: ${allowedOrigins.join(', ')}`;
-            console.error(`[${new Date().toISOString()}] ${msg}`);
-            callback(new Error(msg), false);
-        }
-    },
-    methods: ['GET', 'POST', 'OPTIONS'], 
-    allowedHeaders: ['Content-Type', 'Authorization'], 
-    credentials: true, 
-    optionsSuccessStatus: 204 
-};
-
-app.use(cors(corsOptions));
-app.use(express.json());
-
-// --- Static File Serving ---
-app.use(express.static(path.join(__dirname, 'public')));
-
-// --- API Routes ---
-app.get('/health', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Health check path /health was hit from IP: ${req.ip}`);
-    res.status(200).send(`[${timestamp}] Backend is running. API endpoint is at POST /api/analyze-prompt.`);
-});
-
-app.post('/api/analyze-prompt', async (req, res) => {
-    const timestamp = new Date().toISOString();
-    const { prompt } = req.body;
-    console.log(`[${timestamp}] Received POST request to /api/analyze-prompt with prompt: "${prompt}" from IP: ${req.ip}`);
-
-    if (!process.env.OPENAI_API_KEY) {
-        console.error(`[${timestamp}] FATAL ERROR (runtime): OpenAI API Key is not configured on the server for API call.`);
-        return res.status(500).json({ error: 'Server configuration error: OpenAI API Key missing.' });
-    }
-    if (!prompt) {
-        console.log(`[${timestamp}] Prompt is missing in request body, returning 400.`);
-        return res.status(400).json({ error: 'Prompt is required' });
-    }
-
-    try {
-        console.log(`[${timestamp}] Calling OpenAI with model "gpt-4o-search-preview" for prompt: "${prompt}"`);
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-search-preview", 
-            messages: [{ role: "user", content: prompt }],
-        });
-
-        console.log(`[${timestamp}] OpenAI API response received successfully for prompt: "${prompt}"`);
-        
-        if (completion.choices && completion.choices.length > 0 && completion.choices[0].message && completion.choices[0].message.content) {
-            res.json({ response: completion.choices[0].message.content });
-        } else {
-            console.error(`[${timestamp}] Unexpected OpenAI API response structure for prompt: "${prompt}"`, JSON.stringify(completion, null, 2));
-            res.status(500).json({ error: 'Failed to get a valid response content from OpenAI API' });
-        }
-
-    } catch (error) {
-        console.error(`[${timestamp}] Error calling OpenAI API for prompt: "${prompt}":`, error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
-        if (error.response) {
-            console.error(`[${timestamp}] OpenAI Error Status:`, error.response.status);
-        }
-        res.status(500).json({ 
-            error: 'Failed to analyze prompt with OpenAI', 
-            details: error.message,
-            responseData: error.response ? error.response.data : null 
-        });
-    }
-});
-
-// --- Catch-all for Frontend ---
-app.get('*', (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Serving index.html (catch-all) for GET request to: ${req.path} from IP: ${req.ip}`);
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// --- Server Start ---
-app.listen(port, () => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] Backend server running on port ${port}`);
-    console.log(`[${timestamp}] CORS enabled for origins: ${allowedOrigins.join(', ')}`);
-    console.log(`[${timestamp}] OpenAI Model: gpt-4o-search-preview`);
-    console.log(`[${timestamp}] Static files served from 'public' directory.`);
-    console.log(`[${timestamp}] API endpoint POST /api/analyze-prompt is active.`);
-    console.log(`[${timestamp}] Health check GET /health is available.`);
-});
