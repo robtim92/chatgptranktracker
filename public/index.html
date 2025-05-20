@@ -144,7 +144,6 @@ Tell me about project management software." required></textarea>
                             <th># Domain/URL Mentions</th>
                             <th># GMB/Maps Mentions</th>
                             <th>GMB/Maps Link Position</th>
-                            <th>Other Brands Mentioned</th>
                             <th>Other Domains Mentioned</th>
                             <th>Full Response</th>
                         </tr>
@@ -277,7 +276,8 @@ Tell me about project management software." required></textarea>
                         brandMentionPosition: "Error", linkPosition: "Error",
                         numBrandMentions: "Error", numDomainMentions: "Error",
                         numGmbMentions: "Error", gmbLinkPosition: "Error", 
-                        otherBrands: "Error", otherDomains: "Error",
+                        otherBrands: "Error", // Still calculated but won't be shown/exported
+                        otherDomains: "Error",
                     };
                 } else {
                     analysisResult = analyzeResponse(fullResponse, uniqueBrandNames, cleanedBrandDomain, cleanedGmbUrl); 
@@ -306,7 +306,8 @@ Tell me about project management software." required></textarea>
                     brandMentionPosition: "Invalid Response", linkPosition: "Invalid Response",
                     numBrandMentions: 0, numDomainMentions: 0,
                     numGmbMentions: 0, gmbLinkPosition: "NA", 
-                    otherBrands: "NA", otherDomains: "NA",
+                    otherBrands: "NA", // Still calculated but won't be shown/exported
+                    otherDomains: "NA",
                 };
             }
 
@@ -327,10 +328,8 @@ Tell me about project management software." required></textarea>
             });
             brandMentionPositions.sort((a, b) => a.index - b.index);
 
-            // --- Refined "Other Brands" detection ---
+            // --- Refined "Other Brands" detection (logic remains, output is commented out below) ---
             const allFoundOtherMentions = [];
-            
-            // 1. Known common brands (case-insensitive check against user's brand)
             const knownCompetitorBrands = new Set([ 
                 "Salesforce", "HubSpot", "Zoho CRM", "Asana", "Trello", "Monday.com", 
                 "Google Drive", "Dropbox", "OneDrive", "XTool", "YPlatform", 
@@ -340,9 +339,7 @@ Tell me about project management software." required></textarea>
             ]);
             knownCompetitorBrands.forEach(cob => {
                 const cobLower = cob.toLowerCase();
-                // Only add if it's NOT one of the user's input brand names/variations
                 if (brandNames.includes(cobLower)) return; 
-
                 const escapedCob = escapeRegExp(cob);
                 if (!escapedCob) return;
                 try {
@@ -354,13 +351,9 @@ Tell me about project management software." required></textarea>
                 } catch (e) { console.error(`Error creating regex for known competitor "${cob}":`, e); }
             });
 
-            // 2. Regex for potential proper nouns (multi-word capitalized phrases)
-            //    Looking for 1 to 6 capitalized words.
             const potentialBrandRegex = /\b([A-Z][a-zA-Z0-9'&/-]+(?:\s+[A-Z][a-zA-Z0-9'&/-]+){0,5})\b/g;
             let regexMatch;
-            
             const generalExclusionList = new Set([
-                // Common English words that might be capitalized at sentence start
                 'if', 'is', 'it', 'a', 'an', 'the', 'and', 'or', 'but', 'so', 'open', 'offers', 'provides', 
                 'specializes', 'closed', 'when', 'additionally', 'remember', 'also', 'however', 'therefore', 
                 'example', 'including', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'any', 
@@ -379,11 +372,10 @@ Tell me about project management software." required></textarea>
                 'what', "what's", "where's", "which", 'while', 'who', "who's", 'whom', 'why', "why's", 'with', 
                 "won't", 'would', "wouldn't", 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 
                 'yourself', 'yourselves',
-                // Common suffixes & generic business/location terms
                 'llc', 'inc', 'corp', 'ltd', 'co', 'gmbh', 'group', 'services', 'solutions', 'company', 'center', 'store',
                 'shop', 'agency', 'studio', 'enterprises', 'associates', 'industries', 'systems', 'technologies',
                 'rd', 'ln', 'st', 'ave', 'blvd', 'dr', 'ct', 'road', 'lane', 'street', 'avenue', 'boulevard', 'drive', 'court', 'way', 'parkway', 'pkwy',
-                'nc', 'ca', 'ny', 'tx', 'fl', 'ga', 'oh', 'pa', 'il', 'mi', // Common state codes
+                'nc', 'ca', 'ny', 'tx', 'fl', 'ga', 'oh', 'pa', 'il', 'mi', 
                 'north', 'south', 'east', 'west', 'january', 'february', 'march', 'april', 'may', 'june', 'july',
                 'august', 'september', 'october', 'november', 'december', 'monday', 'tuesday', 'wednesday',
                 'thursday', 'friday', 'saturday', 'sunday',
@@ -396,58 +388,35 @@ Tell me about project management software." required></textarea>
 
             while((regexMatch = potentialBrandRegex.exec(responseText)) !== null) {
                 let potentialBrand = regexMatch[1].trim();
-                potentialBrand = potentialBrand.replace(/['’]s$/i, ''); // Remove possessive 's or ’s
-                potentialBrand = potentialBrand.replace(/[,.;:!?]$/, '').trim(); // Remove trailing punctuation
+                potentialBrand = potentialBrand.replace(/['’]s$/i, ''); 
+                potentialBrand = potentialBrand.replace(/[,.;:!?]$/, '').trim(); 
 
                 const lowerPotentialBrand = potentialBrand.toLowerCase();
                 const words = potentialBrand.split(/\s+/);
 
-                // Skip if it's one of the user's brands
                 if (brandNames.includes(lowerPotentialBrand)) continue;
-                // Skip if it's already identified as a known competitor
                 if (knownCompetitorBrands.has(potentialBrand) || Array.from(knownCompetitorBrands).some(kcb => kcb.toLowerCase() === lowerPotentialBrand)) continue;
-                // Skip if the whole phrase (lowercase) is in the general exclusion list
                 if (generalExclusionList.has(lowerPotentialBrand)) continue;
-                // Skip if it's a single word and that word (lowercase) is in the exclusion list, unless it's all caps (e.g. IBM)
                 if (words.length === 1 && generalExclusionList.has(lowerPotentialBrand) && !/^[A-Z0-9]+$/.test(potentialBrand)) continue;
-                // Skip very short words unless they are all caps (e.g. HP, IBM)
                 if (potentialBrand.length < 2) continue;
                 if (potentialBrand.length < 3 && !/^[A-Z0-9]{2}$/.test(potentialBrand)) continue;
-                 // Skip if it's just a state code or common abbreviation like "Rd."
                 if (words.length === 1 && /^[A-Z]{2}\.?$/.test(potentialBrand) && generalExclusionList.has(lowerPotentialBrand.replace('.', ''))) continue;
-
-
-                // More aggressive filtering for single words that are not all caps
-                if (words.length === 1 && potentialBrand !== potentialBrand.toUpperCase()) {
-                    // If it's a single capitalized word, be more skeptical. Only keep if it's not a common dictionary word.
-                    // This part is tricky without a full dictionary. We rely on the exclusion list for now.
-                    // Could add a check: if it's a single word and *not* on a known brands list, and *is* on a common words list, skip.
-                    // For now, the existing exclusion list check for single words handles this.
-                }
-                
-                // Heuristic: if it contains a comma and is short, likely a location fragment
                 if (potentialBrand.includes(',') && words.length <= 3) continue;
-
-                // Heuristic: if it ends with a common street suffix and is short (e.g. "Main St", "Cleveland Rd")
                 const lastWordLower = words[words.length - 1].toLowerCase().replace('.', '');
                 if (words.length <= 3 && ['rd','ln','st','ave','blvd','dr','ct','road','lane','street','avenue','drive','court', 'pike', 'hwy', 'trl'].includes(lastWordLower)) {
                     continue;
                 }
-                
                 allFoundOtherMentions.push({ name: potentialBrand, index: regexMatch.index, type: "regex" });
             }
             
-            // Combine, make unique by name (case-insensitive), and sort by index
             const uniqueMentionsMap = new Map();
             allFoundOtherMentions.sort((a, b) => a.index - b.index); 
-
             allFoundOtherMentions.forEach(item => {
                 const lowerName = item.name.toLowerCase();
                 if (!uniqueMentionsMap.has(lowerName) && !brandNames.includes(lowerName)) {
                     uniqueMentionsMap.set(lowerName, item);
                 }
             });
-            
             const uniqueOtherBrandMentions = Array.from(uniqueMentionsMap.values());
             const otherBrandNames = uniqueOtherBrandMentions.map(item => item.name);
 
@@ -531,7 +500,7 @@ Tell me about project management software." required></textarea>
                 numDomainMentions: brandDomainMentionsCount,
                 numGmbMentions: numGmbMentions, 
                 gmbLinkPosition: gmbLinkPosition, 
-                otherBrands: otherBrandNames.join(', ') || "NA",
+                otherBrands: otherBrandNames.join(', ') || "NA", // Data is still generated
                 otherDomains: uniqueOtherDomains.join(', ') || "NA",
             };
         }
@@ -550,9 +519,9 @@ Tell me about project management software." required></textarea>
             row.insertCell().textContent = result.numGmbMentions; 
             row.insertCell().textContent = result.gmbLinkPosition; 
             
-            const otherBrandsCell = row.insertCell();
-            otherBrandsCell.textContent = result.otherBrands.length > 30 ? result.otherBrands.substring(0,27) + "..." : result.otherBrands; 
-            if(result.otherBrands.length > 30) otherBrandsCell.title = result.otherBrands;
+            // const otherBrandsCell = row.insertCell(); // Commented out as requested
+            // otherBrandsCell.textContent = result.otherBrands.length > 30 ? result.otherBrands.substring(0,27) + "..." : result.otherBrands; 
+            // if(result.otherBrands.length > 30) otherBrandsCell.title = result.otherBrands;
 
             const otherDomainsCell = row.insertCell();
             otherDomainsCell.textContent = result.otherDomains.length > 30 ? result.otherDomains.substring(0,27) + "..." : result.otherDomains; 
@@ -579,7 +548,8 @@ Tell me about project management software." required></textarea>
                 "Prompt", "Brand Mention Position", "Link Position", 
                 "# Brand Mentions", "# Domain/URL Mentions", 
                 "# GMB/Maps Mentions", "GMB/Maps Link Position", 
-                "Other Brands Mentioned", "Other Domains Mentioned", "Full Response"
+                // "Other Brands Mentioned", // Commented out as requested
+                "Other Domains Mentioned", "Full Response"
             ];
             const csvRows = [headers.join(',')]; 
             data.forEach(row => {
@@ -588,7 +558,7 @@ Tell me about project management software." required></textarea>
                     row.brandMentionPosition, row.linkPosition,
                     row.numBrandMentions, row.numDomainMentions,
                     row.numGmbMentions, row.gmbLinkPosition, 
-                    `"${(row.otherBrands || "NA").replace(/"/g, '""')}"`,
+                    // `"${(row.otherBrands || "NA").replace(/"/g, '""')}"`, // Commented out as requested
                     `"${(row.otherDomains || "NA").replace(/"/g, '""')}"`,
                     `"${(String(row.fullResponse) || "").replace(/"/g, '""').replace(/\n/g, '  ')}"`
                 ];
